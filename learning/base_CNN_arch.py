@@ -20,13 +20,6 @@ import matplotlib.pyplot as plt
 import time
 
 
-#import make_food as yum
-
-#def read_data():
-#     train, validate = yum.generate()
-#     return(train,validate)
-
-
 class centromere_trainer:
 
     def prep_all_data():
