@@ -11,12 +11,17 @@ import glob
 from PIL import Image
 import cv2
 import os
+from os import getcwd
+import pickle
+
+mypath = getcwd()
+print(mypath)
 
 class Make_One_Hot:
 
     def __init__(self):
         # This is where the images will be
-        self.dirloc = "./data"
+        self.dirloc = mypath + "/data"
 
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
@@ -31,6 +36,7 @@ class Make_One_Hot:
                     image_array = imread(images) # Read in as an array
                     x = np.shape(image_array)[0] # Pull x value of the shape
                     y = np.shape(image_array)[1] # Pull the y value of the shape
+
                     # Append to the array
                     x_sizes = np.append(x,x_sizes)
                     y_sizes = np.append(y,y_sizes)
@@ -42,7 +48,8 @@ class Make_One_Hot:
                     #Find the y min
                     y_min = np.amin(y_sizes)
                     y_min = int(y_min)
-
+        x_min = 100
+        y_min = 100
         return(x_min,y_min)
 
     # This reads in the images and appends them together
@@ -59,16 +66,17 @@ class Make_One_Hot:
 
         # Loop through all the images.
 
-
+        i = 1
         for images in glob.glob(location + '/*'):
+            print("Image" + str(i))
             image = imread(images) # Read in each image
             image = cv2.resize(image,(int(y_size),int(x_size))) # Size the images so that they are all the same size
             j = image.flatten() # Flatten them all
-            B = j.reshape((np.shape(j)[0],1)) # Reshape so that the arrays are (n,1)
+            B = j.reshape((np.shape(j)[0],1))# Reshape so that the arrays are (n,1)
             print(np.shape(B))
             print(np.shape(vector1))
-            vector1 = np.append(B,vector1,axis = 1) # Append them all to the main array
- 
+            vector1 = np.append(vector1,B,axis = 1) # Append them all to the main array
+            i = i + 1
 
         # Tip so that it is a row of images with columns of values
         vector1 = vector1.T
@@ -95,7 +103,7 @@ class Make_One_Hot:
         y_train_base = onehot_encoder.fit_transform(integer_encoded)
         all_data = np.append(y_train_base, collect, axis = 1)
         np.random.shuffle(all_data)
-
+        print("Here is the shape of all_data: " , np.shape(all_data))
         np.save('all_data',all_data)
 
 
@@ -126,4 +134,3 @@ class Make_One_Hot:
 
 MOH = Make_One_Hot()
 MOH.run()
-
