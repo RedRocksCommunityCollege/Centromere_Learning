@@ -21,7 +21,7 @@ class Make_One_Hot:
 
     def __init__(self):
         # This is where the images will be
-        self.dirloc = mypath + "/data"
+        self.dirloc = mypath + "/preprocessing/data"
 
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
@@ -48,8 +48,7 @@ class Make_One_Hot:
                     #Find the y min
                     y_min = np.amin(y_sizes)
                     y_min = int(y_min)
-        x_min = 100
-        y_min = 100
+
         return(x_min,y_min)
 
     # This reads in the images and appends them together
