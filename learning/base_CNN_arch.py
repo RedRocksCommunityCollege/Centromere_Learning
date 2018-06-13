@@ -22,19 +22,20 @@ from os import getcwd
 import pickle
 
 mypath = getcwd()
+print(mypath)
 
 class centromere_trainer:
 
     def prep_all_data(self):
-        all_data = np.load(mypath + '\data_all.npy')
-        x_train = all_data[:900,3:]
-        x_train = x_train.reshape(np.shape(x_train)[0],113,150,1)
+        all_data = np.load(mypath + '/preprocessing/all_data.npy')
+        x_train = all_data[:350,2:]
+        x_train = x_train.reshape(np.shape(x_train)[0],100,100,3)
 
-        y_train = all_data[:900,:3]
-        y_test = all_data[900:,:3]
+        y_train = all_data[:350,:2]
+        y_test = all_data[350:,:2]
 
-        x_test = all_data[900:,3:]
-        x_test = x_test.reshape(np.shape(x_test)[0],113,150,1)
+        x_test = all_data[350:,2:]
+        x_test = x_test.reshape(np.shape(x_test)[0],100,100,3)
 
 
         train = x_train,y_train
@@ -46,7 +47,7 @@ class centromere_trainer:
         model = Sequential()
         model.add(Conv2D(32, kernel_size=(3, 3),
                          activation='relu',
-                         input_shape=(113,150,1)))
+                         input_shape=(100,100,3)))
         model.add(MaxPooling2D(pool_size=(3, 3)))
         model.add(Conv2D(32, (3, 3), activation='relu'))
         model.add(MaxPooling2D(pool_size=(3, 3)))
@@ -54,7 +55,9 @@ class centromere_trainer:
         model.add(Flatten())
         model.add(Dense(128, activation='relu'))
         model.add(Dropout(0.2))
-        model.add(Dense(3, activation='softmax'))
+        model.add(Dense(2, activation='softmax'))
+
+        #parallel_model = model.multi_gpu_model(model,gpus = 2)
 
         model.compile(loss=keras.losses.categorical_crossentropy,
                       optimizer=keras.optimizers.Adadelta(),
@@ -67,8 +70,8 @@ class centromere_trainer:
             steps_per_epoch = 10,
             epochs = 7)
 
-        model.save('models/CNN_name_of_feature_' + time.strftime("%Y-%m-%d_%H-%M-%S") +'.h5')
-        with open('models/history/History_name_of_feature' + time.strftime("%Y-%m-%d_%H-%M-%S") , 'wb') as file_pi:
+        model.save(mypath + '/learning/models/CNN_name_of_feature_' + time.strftime("%Y-%m-%d_%H-%M-%S") +'.h5')
+        with open(mypath + '/learning/models/history/History_name_of_feature' + time.strftime("%Y-%m-%d_%H-%M-%S") , 'wb') as file_pi:
             pickle.dump(history.history, file_pi)
 
 cent = centromere_trainer()
