@@ -7,6 +7,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 
+input_shape = (255,301,1)
+
 # https://github.com/keras-team/keras/blob/master/examples/mnist_cnn.py
 def mnist_example():
     name = "mnist_example"
@@ -14,7 +16,7 @@ def mnist_example():
     
     model.add(Conv2D(32, kernel_size=(3, 3),
                      activation='relu',
-                     input_shape=input_shape))
+                     input_shape = input_shape))
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
@@ -59,9 +61,9 @@ def CNN_Model_2():
 
     # Create the model
     model = Sequential()
-    model.add(Convolution2D(32, 3, 3, input_shape=(125, 200, 3), border_mode='same', activation='relu', W_constraint=maxnorm(3)))
+    model.add(Conv2D(32, 3, 3, input_shape=(125, 200, 3), border_mode='same', activation='relu', W_constraint=maxnorm(3)))
     model.add(Dropout(0.2))
-    model.add(Convolution2D(32, 3, 3, activation='relu', border_mode='same', W_constraint=maxnorm(3)))
+    model.add(Conv2D(32, 3, 3, activation='relu', border_mode='same', W_constraint=maxnorm(3)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Flatten())
     model.add(Dense(512, activation='relu', W_constraint=maxnorm(3)))
