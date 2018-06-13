@@ -11,17 +11,31 @@ import glob
 from PIL import Image
 import cv2
 import os
+import sys
+import time
 
 class Make_One_Hot:
 
     def __init__(self):
         # This is where the images will be
-        self.dirloc = "./data"
+        self.dirloc = "/home/adam/MountPt/data/Sharp_NotSharp/"
+    
+    # Got this from here:  https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+    def progress(self, count, total, status):
+        bar_len = 60
+        filled_len = int(round(bar_len * count / float(total)))
+
+        percents = round(100.0 * count / float(total), 1)
+        bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+        sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
+        sys.stdout.flush() 
 
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
         x_sizes = [] # Catch for sizes
         y_sizes = []
+        img_count = 0
         # Loop over all the images
         for dirnames in os.walk(self.dirloc):
             if dirnames[0] == self.dirloc:
@@ -43,13 +57,15 @@ class Make_One_Hot:
                     y_min = np.amin(y_sizes)
                     y_min = int(y_min)
 
-        return(x_min,y_min)
+                    img_count += 1 
+
+        return(x_min,y_min,img_count)
 
     # This reads in the images and appends them together
     def Make_Data_Matrix(self,location):
 
         # Gets the size for x and y (Smallest)
-        x_size, y_size = MOH.resize_image()
+        x_size, y_size, img_count = MOH.resize_image()
 
         # Makes a vector of the correct size so that we can append to it.
         vector1 = np.zeros((x_size,y_size,3))
@@ -58,19 +74,23 @@ class Make_One_Hot:
 
 
         # Loop through all the images.
-
-
+        i = 0
+        total = img_count
+        vector1 = []
         for images in glob.glob(location + '/*'):
             image = imread(images) # Read in each image
             image = cv2.resize(image,(int(y_size),int(x_size))) # Size the images so that they are all the same size
             j = image.flatten() # Flatten them all
             B = j.reshape((np.shape(j)[0],1)) # Reshape so that the arrays are (n,1)
-            print(np.shape(B))
-            print(np.shape(vector1))
-            vector1 = np.append(B,vector1,axis = 1) # Append them all to the main array
+            vector1.append(B) # Append them all to the main array
  
+            MOH.progress(i, total, 'Doing very long job')
+            time.sleep(0.5)  # emulating long-playing job
+
+            i += 1
 
         # Tip so that it is a row of images with columns of values
+        vector1 = np.asarray(vector1)
         vector1 = vector1.T
         print("Number of images in" + location  , np.shape(vector1))
         return vector1
