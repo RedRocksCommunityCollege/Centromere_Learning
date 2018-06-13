@@ -11,17 +11,43 @@ import glob
 from PIL import Image
 import cv2
 import os
+<<<<<<< HEAD
+import sys
+import time
+=======
+from os import getcwd
+import pickle
+
+mypath = getcwd()
+print(mypath)
+>>>>>>> 2343add26c8cca47124214f07ab579ca7c052ecd
 
 class Make_One_Hot:
 
     def __init__(self):
         # This is where the images will be
-        self.dirloc = "./data"
+<<<<<<< HEAD
+        self.dirloc = "/home/adam/MountPt/data/Sharp_NotSharp/"
+    
+    # Got this from here:  https://gist.github.com/vladignatyev/06860ec2040cb497f0f3
+    def progress(self, count, total, status):
+        bar_len = 60
+        filled_len = int(round(bar_len * count / float(total)))
+
+        percents = round(100.0 * count / float(total), 1)
+        bar = '=' * filled_len + '-' * (bar_len - filled_len)
+
+        sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
+        sys.stdout.flush() 
+=======
+        self.dirloc = mypath + "/data"
+>>>>>>> 2343add26c8cca47124214f07ab579ca7c052ecd
 
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
         x_sizes = [] # Catch for sizes
         y_sizes = []
+        img_count = 0
         # Loop over all the images
         for dirnames in os.walk(self.dirloc):
             if dirnames[0] == self.dirloc:
@@ -31,6 +57,7 @@ class Make_One_Hot:
                     image_array = imread(images) # Read in as an array
                     x = np.shape(image_array)[0] # Pull x value of the shape
                     y = np.shape(image_array)[1] # Pull the y value of the shape
+
                     # Append to the array
                     x_sizes = np.append(x,x_sizes)
                     y_sizes = np.append(y,y_sizes)
@@ -42,14 +69,22 @@ class Make_One_Hot:
                     #Find the y min
                     y_min = np.amin(y_sizes)
                     y_min = int(y_min)
+<<<<<<< HEAD
 
+                    img_count += 1 
+
+        return(x_min,y_min,img_count)
+=======
+        x_min = 100
+        y_min = 100
         return(x_min,y_min)
+>>>>>>> 2343add26c8cca47124214f07ab579ca7c052ecd
 
     # This reads in the images and appends them together
     def Make_Data_Matrix(self,location):
 
         # Gets the size for x and y (Smallest)
-        x_size, y_size = MOH.resize_image()
+        x_size, y_size, img_count = MOH.resize_image()
 
         # Makes a vector of the correct size so that we can append to it.
         vector1 = np.zeros((x_size,y_size,3))
@@ -58,19 +93,37 @@ class Make_One_Hot:
 
 
         # Loop through all the images.
+<<<<<<< HEAD
+        i = 0
+        total = img_count
+        vector1 = []
+=======
 
-
+        i = 1
+>>>>>>> 2343add26c8cca47124214f07ab579ca7c052ecd
         for images in glob.glob(location + '/*'):
+            print("Image" + str(i))
             image = imread(images) # Read in each image
             image = cv2.resize(image,(int(y_size),int(x_size))) # Size the images so that they are all the same size
             j = image.flatten() # Flatten them all
+<<<<<<< HEAD
             B = j.reshape((np.shape(j)[0],1)) # Reshape so that the arrays are (n,1)
+            vector1.append(B) # Append them all to the main array
+ 
+            MOH.progress(i, total, 'Doing very long job')
+            time.sleep(0.5)  # emulating long-playing job
+
+            i += 1
+=======
+            B = j.reshape((np.shape(j)[0],1))# Reshape so that the arrays are (n,1)
             print(np.shape(B))
             print(np.shape(vector1))
-            vector1 = np.append(B,vector1,axis = 1) # Append them all to the main array
- 
+            vector1 = np.append(vector1,B,axis = 1) # Append them all to the main array
+            i = i + 1
+>>>>>>> 2343add26c8cca47124214f07ab579ca7c052ecd
 
         # Tip so that it is a row of images with columns of values
+        vector1 = np.asarray(vector1)
         vector1 = vector1.T
         print("Number of images in" + location  , np.shape(vector1))
         return vector1
@@ -95,7 +148,7 @@ class Make_One_Hot:
         y_train_base = onehot_encoder.fit_transform(integer_encoded)
         all_data = np.append(y_train_base, collect, axis = 1)
         np.random.shuffle(all_data)
-
+        print("Here is the shape of all_data: " , np.shape(all_data))
         np.save('all_data',all_data)
 
 
@@ -126,4 +179,3 @@ class Make_One_Hot:
 
 MOH = Make_One_Hot()
 MOH.run()
-
