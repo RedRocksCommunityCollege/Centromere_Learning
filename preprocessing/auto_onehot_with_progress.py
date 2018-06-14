@@ -1,18 +1,13 @@
 from sklearn.preprocessing import LabelEncoder
 from sklearn.preprocessing import OneHotEncoder
-from numpy import array
-from numpy import argmax
-from numpy import zeros
-from numpy import shape
-from numpy import chararray
 import numpy as np
 from matplotlib.image import imread
 import glob
-from PIL import Image
 import cv2
 import os
 import sys
 import time
+import h5py
 
 class Make_One_Hot:
 
@@ -29,11 +24,11 @@ class Make_One_Hot:
         bar = '=' * filled_len + '-' * (bar_len - filled_len)
 
         sys.stdout.write('[%s] %s%s ...%s\r' % (bar, percents, '%', status))
-        sys.stdout.flush() 
-
+        sys.stdout.flush()
+    
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
-        x_sizes = [] # Catch for sizes
+        x_sizes = []  # Catch for sizes
         y_sizes = []
         img_count = 0
         # Loop over all the images
@@ -42,12 +37,12 @@ class Make_One_Hot:
                 continue
             else:
                 for images in glob.glob(dirnames[0] + '/*'):
-                    image_array = imread(images) # Read in as an array
-                    x = np.shape(image_array)[0] # Pull x value of the shape
-                    y = np.shape(image_array)[1] # Pull the y value of the shape
+                    image_array = imread(images)  # Read in as an array
+                    x = np.shape(image_array)[0]  # Pull x value of the shape
+                    y = np.shape(image_array)[1]  # Pull the y value of the shape
                     # Append to the array
-                    x_sizes = np.append(x,x_sizes)
-                    y_sizes = np.append(y,y_sizes)
+                    x_sizes = np.append(x, x_sizes)
+                    y_sizes = np.append(y, y_sizes)
 
                     # Find the x min
                     x_min = np.amin(x_sizes)
@@ -57,12 +52,14 @@ class Make_One_Hot:
                     y_min = np.amin(y_sizes)
                     y_min = int(y_min)
 
-                    img_count += 1 
-
-        return(x_min,y_min,img_count)
+                    img_count += 1
+        
+        x_min = 10 
+        y_min = 10
+        return(x_min, y_min, img_count)
 
     # This reads in the images and appends them together
-    def Make_Data_Matrix(self,location):
+    def Make_Data_Matrix(self, location):
 
         # Gets the size for x and y (Smallest)
         x_size, y_size, img_count = MOH.resize_image()
@@ -78,13 +75,13 @@ class Make_One_Hot:
         total = img_count
         vector1 = []
         for images in glob.glob(location + '/*'):
-            image = imread(images) # Read in each image
-            image = cv2.resize(image,(int(y_size),int(x_size))) # Size the images so that they are all the same size
-            j = image.flatten() # Flatten them all
-            B = j.reshape((np.shape(j)[0],1)) # Reshape so that the arrays are (n,1)
-            vector1.append(B) # Append them all to the main array
- 
-            MOH.progress(i, total, 'Working on ' + location )
+            image = imread(images)  # Read in each image
+            image = cv2.resize(image, (int(y_size), int(x_size)))  # Size the images so that they are all the same size
+            j = image.flatten()  # Flatten them all
+            B = j.reshape((np.shape(j)[0], 1))  # Reshape so that the arrays are (n,1)
+            vector1.append(B)  # Append them all to the main array
+
+            MOH.progress(i, total, 'Working on ' + location)
             time.sleep(0.5)  # emulating long-playing job
 
             i += 1
@@ -94,32 +91,27 @@ class Make_One_Hot:
         vector1 = vector1.T
         vector1 = np.squeeze(vector1, axis=0)
         vector1 = np.transpose(vector1)
-        print("Number of images in" + location  , np.shape(vector1))
+        print("Number of images in" + location, np.shape(vector1))
         return vector1
 
-    def make_all_data(self,raw_master_array):
-        d=[]
-        a = []
-        a1 = []
+    def make_all_data(self, raw_master_array):
         i = 0
         collect = []
         for i in range(np.shape(raw_master_array)[0]):
-            a = np.append(np.ones(np.shape(raw_master_array[i])[0]),a1,axis = 0)
-            c = i * a
-            d = np.append(d,c)
+            one_hot = [0] * np.shape(raw_master_array)[0]
             for j in range(np.shape(raw_master_array[i])[0]):
-                collect.append(raw_master_array[i][j])
+                one_hot[i] = 1
+                collect1 = one_hot + raw_master_array[i][j].tolist()
+                collect.append(collect1)
+                print(i,j)
+                sys.stdout.flush()
+        
+        collect = np.array(collect, dtype=np.float16)
 
-        label_encoder = LabelEncoder()
-        integer_encoded = label_encoder.fit_transform(d)
-        onehot_encoder = OneHotEncoder(sparse=False)
-        integer_encoded = integer_encoded.reshape(len(integer_encoded), 1)
-        y_train_base = onehot_encoder.fit_transform(integer_encoded)
-        all_data = np.append(y_train_base, collect, axis = 1)
-        np.random.shuffle(all_data)
 
-        np.save('all_data',all_data)
-
+        h5f = h5py.File("all_data.h5", "w")
+        h5f.create_dataset('dataset_1', data=collect)
+        h5f.close()
 
     def run(self):
         # Initialize the class
@@ -127,7 +119,6 @@ class Make_One_Hot:
 
         num_of_images = []
         raw_master_array = []
-
 
         # Make the collection of data
         for dirnames in os.walk(self.dirloc):
@@ -143,8 +134,6 @@ class Make_One_Hot:
         #    num_of_images.append(np.shape(raw_master_array[i])[0])
 
         MOH.make_all_data(raw_master_array)
-
-
 
 MOH = Make_One_Hot()
 MOH.run()
