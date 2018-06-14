@@ -23,6 +23,18 @@ class Make_One_Hot:
         # This is where the images will be
         self.dirloc = mypath + "/preprocessing/data"
 
+    def Parameters(self):
+        parA = []
+        for dirnames in os.walk(self.dirloc):
+            parA.append(dirnames[0])
+
+            #if dirnames[0] == self.dirloc:
+            #    continue
+            #else:
+                #for images in glob.glob(dirnames[0] + '/*'):
+        print(parA)
+
+
     # Resizes all the images so that they are all the same size.
     def resize_image(self):
         x_sizes = [] # Catch for sizes
@@ -132,4 +144,7 @@ class Make_One_Hot:
 
 
 MOH = Make_One_Hot()
+MOH.Parameters()
+
+
 MOH.run()
